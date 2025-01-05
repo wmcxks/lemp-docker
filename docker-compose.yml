@@ -8,7 +8,7 @@ services:
     image: lnmp:8.1
     container_name: php81
     volumes:
-      - ./:/app/public
+      - C:\\Users\\knote\\Babia\\sayhi\\sayhi_v1.5_code:/app/public
     ports:
       - "127.0.0.1:80:80"
       - "127.0.0.1:3306:3306"

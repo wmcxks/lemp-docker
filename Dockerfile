@@ -67,6 +67,10 @@ RUN mkdir /opt/wp-cli && \
         ln -s /opt/wp-cli/wp-cli.phar /usr/local/bin/wp; \
     )
 
+# Install Node.js v18.16.0
+RUN curl -fsSL https://deb.nodesource.com/setup_18.x | bash - && \
+    apt-get install -y nodejs=18.16.0-1nodesource1
+
 #let`s compose!
 RUN mkdir /opt/composer; \
     cd /opt/composer && ( \
