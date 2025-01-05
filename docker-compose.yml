@@ -1,6 +1,11 @@
 services:
   web:
-    image: fbraz3/lemp:8.1
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        PHP_VERSION: 8.1
+    image: lnmp:8.1
     container_name: php81
     volumes:
       - ./:/app/public

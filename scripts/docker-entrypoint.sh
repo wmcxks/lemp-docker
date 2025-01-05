@@ -12,17 +12,17 @@ USERCRON="/cronfile"
 
 echo > $CRONFILE
 if [ -f "$SYSTEMCRON" ]; then
-	cat $SYSTEMCRON >> $CRONFILE
+    cat $SYSTEMCRON >> $CRONFILE
 fi
 if [ -f "$USERCRON" ]; then
-	cat $USERCRON >> $CRONFILE
+    cat $USERCRON >> $CRONFILE
 fi
 /usr/bin/crontab $CRONFILE
 
 # DECLARE/SET VARIABLES
-PHPVERSION=`cat /PHP_VERSION 2>/dev/null`
+PHPVERSION=$(cat /PHP_VERSION 2>/dev/null)
 if [ -z "$PHPVERSION" ]; then
-    PHPVERSION=`php -v|grep --only-matching --perl-regexp "7\.\\d+" |head -n1`
+    PHPVERSION=$(php -v | grep --only-matching --perl-regexp "7\.\\d+" | head -n1)
 fi
 
 if [ -z "$PHPVERSION" ]; then
@@ -30,13 +30,13 @@ if [ -z "$PHPVERSION" ]; then
 fi
 
 # SET CUSTOM ID FOR www-data USER
-if  [[ ! -z "$DATA_UID" ]] && [[ $DATA_UID =~ ^[0-9]+$ ]] ; then
-	$(which usermod) -u $DATA_UID www-data;
+if [ ! -z "$DATA_UID" ] && echo "$DATA_UID" | grep -qE '^[0-9]+$'; then
+    $(which usermod) -u $DATA_UID www-data
 fi
 
 # SET CUSTOM ID FOR www-data GROUP
-if  [[ ! -z "$DATA_GUID" ]] && [[ $DATA_GUID =~ ^[0-9]+$ ]] ; then
-	$(which groupmod) -g $DATA_GUID www-data;
+if [ ! -z "$DATA_GUID" ] && echo "$DATA_GUID" | grep -qE '^[0-9]+$'; then
+    $(which groupmod) -g $DATA_GUID www-data
 fi
 
 # SORRY FOR THAT =(
@@ -54,7 +54,7 @@ fi
 
 # POPULATE TEMPLATES
 cp -f /etc/ssmtp/ssmtp.conf.template /etc/ssmtp/ssmtp.conf
-sed -i 's/%MY_HOSTNAME%/'`/bin/hostname`'/g' /etc/ssmtp/ssmtp.conf
+sed -i 's/%MY_HOSTNAME%/'$(/bin/hostname)'/g' /etc/ssmtp/ssmtp.conf
 
 $(which sed) -i 's/%PHP_VERSION%/'$PHPVERSION'/g' /etc/monit/conf-enabled/php-fpm
 $(which sed) -i 's/%PHP_VERSION%/'$PHPVERSION'/g' /etc/php/$PHPVERSION/fpm/pool.d/www.conf
@@ -66,35 +66,35 @@ echo > /etc/php/$PHPVERSION/fpm/env.conf
 echo > /etc/php/$PHPVERSION/fpm/overrides.conf
 echo > /etc/php/$PHPVERSION/fpm/pool-overrides.conf
 echo > /etc/php/$PHPVERSION/fpm/phpconf.conf
-for i in `/usr/bin/env`; do
-    PARAM=`echo $i |cut -d"=" -f1`
-    VAL=`echo $i |cut -d"=" -f2`
+for i in $(/usr/bin/env); do
+    PARAM=$(echo $i | cut -d"=" -f1)
+    VAL=$(echo $i | cut -d"=" -f2)
 
-    if [[ "$PARAM" == "_" ]]; then
+    if [ "$PARAM" = "_" ]; then
         continue
     fi
 
-    if [[ $PARAM =~ ^PHPADMIN_.+ ]]; then
-        PHPPARAM=`echo $PARAM |sed 's/PHPADMIN_//g' | sed 's/__/./g' | awk '{print tolower($0)}'`
+    if echo "$PARAM" | grep -qE '^PHPADMIN_.+'; then
+        PHPPARAM=$(echo $PARAM | sed 's/PHPADMIN_//g' | sed 's/__/./g' | awk '{print tolower($0)}')
         echo "PHPADMIN   :: $PHPPARAM => $VAL"
         echo "php_admin_value[$PHPPARAM] =\"$VAL\"" >> /etc/php/$PHPVERSION/fpm/phpconf.conf
 
-    elif [[ $PARAM =~ ^PHPFLAG_.+ ]]; then
-        PHPPARAM=`echo $PARAM |sed 's/PHPFLAG_//g' | sed 's/__/./g' | awk '{print tolower($0)}'`
+    elif echo "$PARAM" | grep -qE '^PHPFLAG_.+'; then
+        PHPPARAM=$(echo $PARAM | sed 's/PHPFLAG_//g' | sed 's/__/./g' | awk '{print tolower($0)}')
         echo "PHPFLAG    :: $PHPPARAM => $VAL"
         echo "php_flag[$PHPPARAM]=\"$VAL\"" >> /etc/php/$PHPVERSION/fpm/phpconf.conf
 
-    elif [[ $PARAM =~ ^FPMCONFIG_.+ ]]; then
-        FPMPARAM=`echo $PARAM |sed 's/FPMCONFIG_//g' | sed 's/__/./g' | awk '{print tolower($0)}'`
-        echo "FPMCONFIG  :: $FPMPARAM => $VAL"
+    elif echo "$PARAM" | grep -qE '^FPMCONFIG_.+'; then
+        FPMPARAM=$(echo $PARAM | sed 's/FPMCONFIG_//g' | sed 's/__/./g' | awk '{print tolower($0)}')
+        echo "FPMCONFIG  :: $FPARAM => $VAL"
         echo "$FPMPARAM = $VAL" >> /etc/php/$PHPVERSION/fpm/overrides.conf
 
-    elif [[ $PARAM =~ ^POOLCONFIG_.+ ]]; then
-        FPMPARAM=`echo $PARAM |sed 's/POOLCONFIG_//g' | sed 's/__/./g' | awk '{print tolower($0)}'`
-        echo "POOLCONFIG :: $FPMPARAM => $VAL"
+    elif echo "$PARAM" | grep -qE '^POOLCONFIG_.+'; then
+        FPMPARAM=$(echo $PARAM | sed 's/POOLCONFIG_//g' | sed 's/__/./g' | awk '{print tolower($0)}')
+        echo "POOLCONFIG :: $FPARAM => $VAL"
         echo "$FPMPARAM = $VAL" >> /etc/php/$PHPVERSION/fpm/pool-overrides.conf
 
-    elif [[ $PARAM =~ ^[a-zA-Z0-9_]+$ ]]; then
+    elif echo "$PARAM" | grep -qE '^[a-zA-Z0-9_]+$'; then
         echo "ENV :: $PARAM => $VAL"
         echo "env[$PARAM]=\"$VAL\"" >> /etc/php/$PHPVERSION/fpm/env.conf
     fi
