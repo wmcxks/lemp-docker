@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/sh
 
 $(which chmod) 700 /etc/monit/monitrc
 

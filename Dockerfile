@@ -14,6 +14,7 @@ RUN echo $PHP_VERSION > /PHP_VERSION; \
     chmod +x /docker-entrypoint.sh; \
     mkdir /app; \
     mkdir /run/php/; \
+    mkdir -p /var/www/html; \
     mkdir -p /app/public; \
     apt-get update;
 
@@ -21,7 +22,8 @@ RUN export DEBIAN_FRONTEND=noninteractive; apt-get install -yq software-properti
     cron vim ssmtp monit wget unzip curl less git; \
     /usr/bin/unattended-upgrades -v;
 
-RUN apt-get install -y nginx;
+RUN add-apt-repository -y ppa:ondrej/nginx
+RUN apt-get update && apt-get install -y nginx
 
 #oh maria!
 RUN export DEBIAN_FRONTEND=noninteractive; apt-get install -yq mariadb-server mariadb-client; \
@@ -57,20 +59,6 @@ RUN export DEBIAN_FRONTEND=noninteractive; \
       apt remove -fyq php8.3*; apt -fyq autoremove; \
     fi;
 
-#php-phalcon
-#RUN if [ $PHP_VERSION \> 7 ]; then \
-#        echo 'deb https://packagecloud.io/phalcon/stable/ubuntu/ bionic main' > /etc/apt/sources.list.d/phalcon_stable.list; \
-#        echo 'deb-src https://packagecloud.io/phalcon/stable/ubuntu/ bionic main' >> /etc/apt/sources.list.d/phalcon_stable.list; \
-#        wget -qO- 'https://packagecloud.io/phalcon/stable/gpgkey' | apt-key add -; \
-#        apt-get update; \
-#        if [ $PHP_VERSION \< 7.4 ]; then \
-#            apt-get install -yq php$PHP_VERSION-phalcon=$PHALCON_VERSION+php$PHP_VERSION; \
-#        fi; \
-#        if [ $PHP_VERSION \> 7.3 ] && [ $PHP_VERSION \< 8 ]; then \
-#            apt-get install -yq php$PHP_VERSION-phalcon php-psr; \
-#        fi; \
-#    fi;
-
 #wp-cli
 RUN mkdir /opt/wp-cli && \
     cd /opt/wp-cli && ( \
@@ -86,14 +74,6 @@ RUN mkdir /opt/composer; \
         ln -s /opt/composer/composer.phar /usr/local/bin/composer; \
     )
 
-#phalcon devtools
-#RUN cd /opt && ( \
-#        git clone https://github.com/phalcon/phalcon-devtools.git; \
-#        cd phalcon-devtools; \
-#        chmod +x phalcon; \
-#        ln -s /opt/phalcon-devtools/phalcon /usr/local/bin/phalcon; \
-#    )
-    
 ## Install Symfony CLI
 RUN if [ "$TARGETPLATFORM" != "linux/arm/v7" ]; then \
         curl -sS https://get.symfony.com/cli/installer | bash; \
